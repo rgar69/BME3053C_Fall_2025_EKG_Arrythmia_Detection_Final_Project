@@ -37,9 +37,15 @@ st.markdown(
     .action-card {
         border: 1px solid #3d4a5d;
         border-radius: 12px;
-        padding: 0.75rem 1rem;
+        padding: 0.8rem 1rem;
         margin-bottom: 0.6rem;
         background: #0b1220;
+        text-align: left;
+    }
+    .action-card.active {
+        border-color: #30c572;
+        background: #082614;
+        box-shadow: 0 0 12px rgba(48, 197, 114, 0.35);
     }
     .action-card-title {
         font-size: 1rem;
@@ -84,10 +90,11 @@ def metric_card(label: str, value: str, footer: str | None = None) -> None:
     )
 
 
-def action_card(title: str, price: str, description: str) -> None:
+def action_card(title: str, price: str, description: str, *, active: bool = False) -> None:
+    active_class = " active" if active else ""
     st.markdown(
         f"""
-        <div class="action-card">
+        <div class="action-card{active_class}">
             <div class="action-card-title">{title}</div>
             <div class="action-card-price">Cost: {price}</div>
             <div class="action-card-desc">{description}</div>
@@ -383,32 +390,38 @@ with tabs[4]:
 with tabs[5]:
     st.subheader("Policies")
     for key, policy in summary["policies"].items():
-        cols = st.columns([4, 1])
-        with cols[0]:
-            action_card(
-                title=policy["label"],
-                price=f"${policy['cost']:,}",
-                description=policy["description"],
-            )
-        with cols[1]:
-            if policy["active"]:
-                st.success("Active")
-            else:
-                if st.button(f"Enable", key=f"policy_{key}"):
-                    perform_action(hospital.toggle_policy(key))
+        button_key = f"policy_{key}"
+        active = policy["active"]
+        button_label = (
+            f"<div class='action-card{' active' if active else ''}'>"
+            f"<div class='action-card-title'>{policy['label']}</div>"
+            f"<div class='action-card-price'>Cost: ${policy['cost']:,}</div>"
+            f"<div class='action-card-desc'>{policy['description']}</div>"
+            "</div>"
+        )
+        if st.button(
+            button_label,
+            key=button_key,
+            use_container_width=True,
+            disabled=active,
+        ):
+            perform_action(hospital.toggle_policy(key))
 
     st.subheader("Upgrades")
     for key, upgrade in summary["upgrades"].items():
-        cols = st.columns([4, 1])
-        with cols[0]:
-            action_card(
-                title=upgrade["label"],
-                price=f"${upgrade['cost']:,}",
-                description=upgrade["effect"],
-            )
-        with cols[1]:
-            if upgrade["purchased"]:
-                st.success("Purchased")
-            else:
-                if st.button("Buy", key=f"upgrade_{key}"):
-                    perform_action(hospital.buy_upgrade(key))
+        button_key = f"upgrade_{key}"
+        active = upgrade["purchased"]
+        button_label = (
+            f"<div class='action-card{' active' if active else ''}'>"
+            f"<div class='action-card-title'>{upgrade['label']}</div>"
+            f"<div class='action-card-price'>Cost: ${upgrade['cost']:,}</div>"
+            f"<div class='action-card-desc'>{upgrade['effect']}</div>"
+            "</div>"
+        )
+        if st.button(
+            button_label,
+            key=button_key,
+            use_container_width=True,
+            disabled=active,
+        ):
+            perform_action(hospital.buy_upgrade(key))
