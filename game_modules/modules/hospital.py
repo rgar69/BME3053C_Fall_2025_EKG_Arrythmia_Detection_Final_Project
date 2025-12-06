@@ -44,7 +44,7 @@ class Hospital:
         self.patients: List[Patient] = []
         self.capacity = {"general": 12, "isolation": 8, "ventilators": 4}
         self.resources = {"vents_available": 4, "staff": 24, "staff_sick": 0}
-        self.finance = {"money": 50000, "score": 0}
+        self.finance = {"money": 0, "score": 0}
         self.supply = SupplyChain()
         self.policies = _clone_catalog(POLICY_CATALOG, flag="active")
         self.upgrades = _clone_catalog(UPGRADE_CATALOG, flag="purchased")
@@ -119,7 +119,7 @@ class Hospital:
         self._release_ventilator(patient)
         patient.ward = "discharged"
         self.stats["discharges"] += 1
-        self.finance["money"] += 500
+        self.finance["money"] += 1000
         self.enqueue_message(f"{patient.name} recovered and discharged")
 
     def _register_death(self, patient: Patient) -> None:
