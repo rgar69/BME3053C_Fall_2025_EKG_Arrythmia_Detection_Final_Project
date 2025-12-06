@@ -34,33 +34,37 @@ st.markdown(
         color: #7d94ad;
         margin-top: 0.15rem;
     }
-    .action-card {
+    .action-button {
+        margin-bottom: 0.6rem;
+    }
+    .action-button button {
+        width: 100%;
         border: 1px solid #3d4a5d;
         border-radius: 12px;
-        padding: 0.8rem 1rem;
-        margin-bottom: 0.6rem;
-        background: #0b1220;
         text-align: left;
+        background: #0b1220;
+        color: #f5f8ff;
+        font-size: 0.95rem;
+        padding: 0.75rem 0.9rem;
+        line-height: 1.4;
+        box-shadow: 0 0 8px rgba(5, 9, 15, 0.45);
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .action-card.active {
+    .action-button button:hover {
+        background: #111a2b;
+    }
+    .action-button button:focus-visible {
+        outline: 2px solid #30c572;
+    }
+    .action-button button:disabled {
+        cursor: default;
+        opacity: 1;
+    }
+    .action-button.active button {
         border-color: #30c572;
-        background: #082614;
-        box-shadow: 0 0 12px rgba(48, 197, 114, 0.35);
-    }
-    .action-card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #f2f6ff;
-    }
-    .action-card-price {
-        font-size: 0.85rem;
-        color: #9fb3c8;
-        margin-top: 0.2rem;
-    }
-    .action-card-desc {
-        font-size: 0.85rem;
-        color: #b8c7da;
-        margin-top: 0.4rem;
+        background: #0f3a1d;
+        color: #b9f7d4;
+        box-shadow: 0 0 15px rgba(48, 197, 114, 0.45);
     }
     </style>
     """,
@@ -90,18 +94,18 @@ def metric_card(label: str, value: str, footer: str | None = None) -> None:
     )
 
 
-def action_card(title: str, price: str, description: str, *, active: bool = False) -> None:
-    active_class = " active" if active else ""
-    st.markdown(
-        f"""
-        <div class="action-card{active_class}">
-            <div class="action-card-title">{title}</div>
-            <div class="action-card-price">Cost: {price}</div>
-            <div class="action-card-desc">{description}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+def action_button(title: str, price: str, description: str, *, key: str, active: bool) -> bool:
+    wrapper_class = "action-button active" if active else "action-button"
+    st.markdown(f"<div class='{wrapper_class}'>", unsafe_allow_html=True)
+    label = f"{title}\nCost: {price}\n{description}"
+    clicked = st.button(
+        label,
+        key=key,
+        use_container_width=True,
+        disabled=active,
     )
+    st.markdown("</div>", unsafe_allow_html=True)
+    return clicked
 
 
 def get_hospital() -> Hospital:
@@ -390,38 +394,22 @@ with tabs[4]:
 with tabs[5]:
     st.subheader("Policies")
     for key, policy in summary["policies"].items():
-        button_key = f"policy_{key}"
-        active = policy["active"]
-        button_label = (
-            f"<div class='action-card{' active' if active else ''}'>"
-            f"<div class='action-card-title'>{policy['label']}</div>"
-            f"<div class='action-card-price'>Cost: ${policy['cost']:,}</div>"
-            f"<div class='action-card-desc'>{policy['description']}</div>"
-            "</div>"
-        )
-        if st.button(
-            button_label,
-            key=button_key,
-            use_container_width=True,
-            disabled=active,
+        if action_button(
+            policy["label"],
+            f"${policy['cost']:,}",
+            policy["description"],
+            key=f"policy_{key}",
+            active=policy["active"],
         ):
             perform_action(hospital.toggle_policy(key))
 
     st.subheader("Upgrades")
     for key, upgrade in summary["upgrades"].items():
-        button_key = f"upgrade_{key}"
-        active = upgrade["purchased"]
-        button_label = (
-            f"<div class='action-card{' active' if active else ''}'>"
-            f"<div class='action-card-title'>{upgrade['label']}</div>"
-            f"<div class='action-card-price'>Cost: ${upgrade['cost']:,}</div>"
-            f"<div class='action-card-desc'>{upgrade['effect']}</div>"
-            "</div>"
-        )
-        if st.button(
-            button_label,
-            key=button_key,
-            use_container_width=True,
-            disabled=active,
+        if action_button(
+            upgrade["label"],
+            f"${upgrade['cost']:,}",
+            upgrade["effect"],
+            key=f"upgrade_{key}",
+            active=upgrade["purchased"],
         ):
             perform_action(hospital.buy_upgrade(key))
