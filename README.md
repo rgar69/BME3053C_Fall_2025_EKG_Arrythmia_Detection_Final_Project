@@ -9,6 +9,17 @@ Players assume the role of an on-duty hospital isolation administrator. Each hou
 ### Opening in GitHub Codespaces
 1. Click **Code → Create codespace on main** on the repository homepage.
 2. Wait for the container to build, then open the integrated terminal.
+3. If `pip` or `streamlit` is missing in this Alpine-based container, use these commands:
+	```bash
+	sudo apk add --no-cache python3 py3-pip   # install python and pip in the container
+	python3 -m venv .venv                     # create a project venv
+	source .venv/bin/activate                 # activate it in the current shell
+	pip install --upgrade pip
+	pip install -r requirements.txt           # pulls in streamlit and friends
+	streamlit run app.py                      # launches the app
+	```
+	- In a new terminal, run `source .venv/bin/activate` before `streamlit run app.py`.
+	- Codespaces will expose port 8501; open it from the Ports panel.
 
 ### Local Setup
 1. Ensure Python 3.10+ is installed.
